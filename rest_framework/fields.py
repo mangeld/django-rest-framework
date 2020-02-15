@@ -1554,6 +1554,8 @@ class FileField(Field):
         self.allow_empty_file = kwargs.pop('allow_empty_file', False)
         if 'use_url' in kwargs:
             self.use_url = kwargs.pop('use_url')
+        if 'use_relative_url' in kwargs:
+            self.use_relative_url = kwargs.pop('use_relative_url')
         super().__init__(*args, **kwargs)
 
     def to_internal_value(self, data):
@@ -1578,11 +1580,14 @@ class FileField(Field):
             return None
 
         use_url = getattr(self, 'use_url', api_settings.UPLOADED_FILES_USE_URL)
+        use_relative_url = getattr(self, 'use_relative_url', api_settings.UPLOADED_FILES_USE_RELATIVE_URL)
         if use_url:
             try:
                 url = value.url
             except AttributeError:
                 return None
+            if use_relative_url:
+                return url
             request = self.context.get('request', None)
             if request is not None:
                 return request.build_absolute_uri(url)
